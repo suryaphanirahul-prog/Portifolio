@@ -261,7 +261,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
     <label>Your email<input required type="email" id="fe" placeholder="jane@company.com"></label>
     <label>Message<textarea required id="fm" placeholder="Tell me about the opportunity…"></textarea></label>
     <button class="btn primary" type="submit" style="justify-content:center">Send message ↗</button>
-    <small style="color:var(--muted)">Opens your email app with the message ready to send.</small>
+    <small style="color:var(--muted)">Your message goes straight to my inbox.</small>
   </form>
 </div></section>
 
@@ -281,7 +281,12 @@ const $=id=>document.getElementById(id);
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};
 $("yr").textContent=new Date().getFullYear();
 $("emailTxt").textContent=CONFIG.email;
-$("mailBtn").href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent("Opportunity for Rahul");
+const SUBJECT="Opportunity for Rahul";
+const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const gmailURL=(su,body)=>"https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(CONFIG.email)+"&su="+encodeURIComponent(su||"")+(body?"&body="+encodeURIComponent(body):"");
+$("mailBtn").href=gmailURL(SUBJECT);
+$("mailBtn").target="_blank";$("mailBtn").rel="noopener";
+if(isMobile){$("mailBtn").href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent(SUBJECT);$("mailBtn").removeAttribute("target")}
 $("copyMail").onclick=()=>{navigator.clipboard?.writeText(CONFIG.email).then(()=>toast("Email copied ✔"),()=>toast(CONFIG.email))};
 if(CONFIG.phone){
   $("phoneRow").hidden=false;
@@ -292,9 +297,23 @@ if(CONFIG.phone){
 }
 if(CONFIG.linkedin){$("li").href=CONFIG.linkedin;$("li").hidden=false}
 if(CONFIG.github){$("gh").href=CONFIG.github;$("gh").hidden=false}
-$("form").onsubmit=e=>{e.preventDefault();
-  const body="Hi Rahul,\n\n"+$("fm").value+"\n\nRegards,\n"+$("fn").value+"\n"+$("fe").value;
-  location.href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent("Portfolio enquiry from "+$("fn").value)+"&body="+encodeURIComponent(body);
+$("form").onsubmit=async e=>{e.preventDefault();
+  const btn=e.target.querySelector("button[type=submit]"),old=btn.textContent;
+  const name=$("fn").value.trim(),mail=$("fe").value.trim(),msg=$("fm").value.trim();
+  btn.disabled=true;btn.textContent="Sending…";
+  try{
+    const r=await fetch("https://formsubmit.co/ajax/"+CONFIG.email,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
+      body:JSON.stringify({name:name,email:mail,message:msg,_subject:"Portfolio message from "+name,_template:"table",_captcha:"false"})});
+    const d=await r.json();
+    if(!r.ok||String(d.success)!=="true")throw new Error(d.message||"failed");
+    e.target.reset();toast("Message sent ✔ Thank you!");
+  }catch(err){
+    toast("Opening Gmail instead…");
+    const body="Hi Rahul,\n\n"+msg+"\n\nRegards,\n"+name+"\n"+mail;
+    const su="Portfolio enquiry from "+name;
+    if(isMobile)location.href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent(su)+"&body="+encodeURIComponent(body);
+    else window.open(gmailURL(su,body),"_blank","noopener");
+  }finally{btn.disabled=false;btn.textContent=old}
 };
 $("burger").onclick=()=>$("links").classList.toggle("open");
 document.querySelectorAll(".links a").forEach(a=>a.onclick=()=>$("links").classList.remove("open"));
