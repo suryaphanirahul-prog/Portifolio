@@ -298,7 +298,7 @@ if(CONFIG.phone){
 if(CONFIG.linkedin){$("li").href=CONFIG.linkedin;$("li").hidden=false}
 if(CONFIG.github){$("gh").href=CONFIG.github;$("gh").hidden=false}
 $("form").onsubmit=async e=>{e.preventDefault();
-  const btn=e.target.querySelector("button[type=submit]"),old=btn.textContent;
+  const form=e.target,btn=form.querySelector("button[type=submit]"),old=btn.textContent;
   const name=$("fn").value.trim(),mail=$("fe").value.trim(),msg=$("fm").value.trim();
   btn.disabled=true;btn.textContent="Sending…";
   try{
@@ -308,13 +308,14 @@ $("form").onsubmit=async e=>{e.preventDefault();
     clearTimeout(tm);
     const d=await r.json();
     if(!r.ok||String(d.success)!=="true")throw new Error(d.message||"failed");
-    e.target.reset();toast("Message sent ✔ Thank you!");
+    form.reset();toast("Message sent ✔ Thank you!");
   }catch(err){
     toast("Opening Gmail instead…");
     const body="Hi Rahul,\n\n"+msg+"\n\nRegards,\n"+name+"\n"+mail;
     const su="Portfolio enquiry from "+name;
     if(isMobile)location.href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent(su)+"&body="+encodeURIComponent(body);
     else window.open(gmailURL(su,body),"_blank","noopener");
+    form.reset();
   }finally{btn.disabled=false;btn.textContent=old}
 };
 $("burger").onclick=()=>$("links").classList.toggle("open");
