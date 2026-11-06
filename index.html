@@ -149,6 +149,23 @@ blockquote{font-family:"Space Grotesk",sans-serif;font-size:1.5rem;line-height:1
  .pill{background:rgba(150,165,255,.18);border-color:rgba(150,165,255,.4);color:#e4e8ff}
  .contact{background:linear-gradient(180deg,transparent,rgba(26,33,96,.9))}
 }
+
+/* ===== contact pop-up ===== */
+.modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(6,9,28,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:.25s}
+.modal.open{opacity:1;visibility:visible}
+.mbox{position:relative;width:100%;max-width:440px;max-height:92vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:30px 26px 26px;box-shadow:0 30px 80px rgba(0,0,0,.55);transform:translateY(18px) scale(.97);transition:.25s}
+.modal.open .mbox{transform:none}
+.mbox:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;border-radius:24px 24px 0 0;background:linear-gradient(90deg,#ff6bb5,#ffb347,#38e1c6,#7c8cff)}
+.mx{position:absolute;right:14px;top:16px;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--text);font-size:1rem;cursor:pointer}
+.mx:hover{border-color:var(--a)}
+.mbox h3{font-family:"Space Grotesk",sans-serif;font-size:1.6rem;margin-bottom:4px}
+.mbox>p{color:var(--muted);font-size:.92rem;margin-bottom:18px}
+.mrow{display:flex;gap:14px;align-items:center;padding:14px 16px;margin-bottom:10px;border:1px solid var(--line);border-radius:14px;background:rgba(124,140,255,.07);transition:.2s;color:var(--text)}
+.mrow:hover{border-color:var(--b);transform:translateY(-2px)}
+.mrow .ic{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:1.1rem;color:#07101a}
+.mrow small{display:block;color:var(--muted);font-size:.7rem;letter-spacing:.08em}
+.mrow b{font-weight:600;word-break:break-all;font-size:.95rem}
+.mbox .btn{width:100%;justify-content:center;margin-top:6px}
 /* contact */
 .contact{background:linear-gradient(180deg,transparent,var(--bg2));border-top:1px solid var(--line)}
 .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:44px}
@@ -398,6 +415,19 @@ window.addEventListener("pageshow",function(e){if(e.persisted)window.scrollTo(0,
 </div></section>
 
 <footer><div class="wrap"><span>© <span id="yr"></span> Venkata Surya Phani Rahul Haridasu</span><span>Designed &amp; built by Rahul · <a href="#home">Back to top ↑</a></span></div></footer>
+
+<div class="modal" id="cm" role="dialog" aria-modal="true" aria-labelledby="cmt">
+  <div class="mbox">
+    <button class="mx" id="cmx" aria-label="Close">✕</button>
+    <h3 id="cmt">Let's talk</h3>
+    <p>Pick the quickest way to reach me.</p>
+    <a class="mrow" id="cmMail" href="#"><span class="ic" style="background:#ff6bb5">✉</span><div><small>EMAIL</small><b id="cmMailTxt"></b></div></a>
+    <a class="mrow" id="cmPhone" href="#" hidden><span class="ic" style="background:#38e1c6">☎</span><div><small>PHONE</small><b id="cmPhoneTxt"></b></div></a>
+    <a class="mrow" id="cmLi" href="#" target="_blank" rel="noopener" hidden><span class="ic" style="background:#7c8cff">in</span><div><small>LINKEDIN</small><b>View my profile</b></div></a>
+    <a class="mrow" href="assets/Rahul_Resume.pdf" download="Venkata_Surya_Phani_Rahul_Resume.pdf"><span class="ic" style="background:#ffb347">⬇</span><div><small>RESUME</small><b>Download my resume (PDF)</b></div></a>
+    <a class="btn primary" href="#contact" id="cmForm">Send a message ↓</a>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -458,6 +488,26 @@ function revealCheck(){var vh=window.innerHeight||document.documentElement.clien
 if("IntersectionObserver" in window){var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){showEl(x.target);io.unobserve(x.target)}})},{threshold:0,rootMargin:"0px 0px 12% 0px"});rvs.forEach(function(el){io.observe(el)})}
 window.addEventListener("scroll",revealCheck,{passive:true});window.addEventListener("resize",revealCheck);window.addEventListener("load",revealCheck);
 revealCheck();setTimeout(revealCheck,300);setTimeout(function(){rvs.forEach(showEl)},5000);
+
+/* contact pop-up */
+(function(){
+  var m=$("cm");
+  $("cmMail").href=isMobile?"mailto:"+CONFIG.email+"?subject="+encodeURIComponent(SUBJECT):gmailURL(SUBJECT);
+  if(!isMobile){$("cmMail").target="_blank";$("cmMail").rel="noopener"}
+  $("cmMailTxt").textContent=CONFIG.email;
+  if(CONFIG.phone){$("cmPhone").hidden=false;$("cmPhone").href="tel:"+CONFIG.phone.replace(/[^+\d]/g,"");$("cmPhoneTxt").textContent=CONFIG.phone}
+  if(CONFIG.linkedin){$("cmLi").hidden=false;$("cmLi").href=CONFIG.linkedin}
+  function open(){m.classList.add("open");document.body.style.overflow="hidden"}
+  function close(){m.classList.remove("open");document.body.style.overflow=""}
+  document.querySelectorAll('a[href="#contact"]').forEach(function(a){
+    if(a.id==="cmForm")return;
+    a.addEventListener("click",function(e){e.preventDefault();$("links").classList.remove("open");open()})
+  });
+  $("cmx").onclick=close;
+  m.addEventListener("click",function(e){if(e.target===m)close()});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
+  $("cmForm").addEventListener("click",function(e){e.preventDefault();close();setTimeout(function(){document.getElementById("contact").scrollIntoView({behavior:"smooth"})},120)});
+})();
 </script>
 </body>
 </html>
