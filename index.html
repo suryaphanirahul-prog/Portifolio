@@ -127,6 +127,14 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 </style>
 </head>
 <body>
+<script>
+/* always open at the top (hero) */
+try{if("scrollRestoration" in history)history.scrollRestoration="manual";
+if(location.hash)history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+window.scrollTo(0,0);
+window.addEventListener("load",function(){window.scrollTo(0,0);setTimeout(function(){window.scrollTo(0,0)},60)});
+window.addEventListener("pageshow",function(e){if(e.persisted)window.scrollTo(0,0)});
+</script>
 
 <nav><div class="wrap nav">
   <a class="logo" href="#home">rahul<b>_</b>dev</a>
