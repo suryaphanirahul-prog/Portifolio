@@ -302,8 +302,10 @@ $("form").onsubmit=async e=>{e.preventDefault();
   const name=$("fn").value.trim(),mail=$("fe").value.trim(),msg=$("fm").value.trim();
   btn.disabled=true;btn.textContent="Sending…";
   try{
-    const r=await fetch("https://formsubmit.co/ajax/"+CONFIG.email,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
+    const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),6000);
+    const r=await fetch("https://formsubmit.co/ajax/"+CONFIG.email,{method:"POST",signal:ctl.signal,headers:{"Content-Type":"application/json",Accept:"application/json"},
       body:JSON.stringify({name:name,email:mail,message:msg,_subject:"Portfolio message from "+name,_template:"table",_captcha:"false"})});
+    clearTimeout(tm);
     const d=await r.json();
     if(!r.ok||String(d.success)!=="true")throw new Error(d.message||"failed");
     e.target.reset();toast("Message sent ✔ Thank you!");
